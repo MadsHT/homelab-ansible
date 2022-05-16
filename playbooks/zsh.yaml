@@ -1,0 +1,11 @@
+- name: install zsh on all hosts
+  hosts: "*"
+  remote_user: surftown
+
+  tasks:
+    - name: install zsh
+      become: true
+      apt:
+        name: zsh
+        state: present
+        update_cache: yes

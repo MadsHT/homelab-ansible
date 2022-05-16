@@ -1,0 +1,39 @@
+- name: install openssh-server
+  hosts: "*"
+  remote_user: surftown
+  vars:
+    ssh_key_file_location: '/home/mht/.ssh/homelab.pub'
+
+  tasks:
+    - name: install openssh-server
+      become: true
+      apt:
+        name: openssh-server
+        state: present
+        update_cache: yes
+
+    - name: Set authorized key taken from file
+      ansible.posix.authorized_key:
+        user: surftown
+        state: present
+        key: "{{ lookup('file', ssh_key_file_location ) }}"
+
+    - name: Disable pass auth
+      become: true
+      lineinfile:
+        path: '/etc/ssh/sshd_config'
+        regexp: '^(.*)PasswordAuthentication(.*)$'
+        line: 'PasswordAuthentication no'
+
+    - name: Disable challenge response authentication
+      become: true
+      lineinfile:
+        path: '/etc/ssh/sshd_config'
+        regexp: '^(.*)ChallengeResponseAuthentication(.*)$'
+        line: 'ChallengeResponseAuthentication no'
+
+    - name: restart sshd
+      become: true
+      service:
+        name: ssh
+        state: restarted
